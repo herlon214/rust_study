@@ -1,3 +1,5 @@
+use std::io;
+
 #[derive(Debug, Clone, PartialEq)]
 enum Piece {
     X,
@@ -16,18 +18,27 @@ fn piece_to_string(piece: &Piece) -> String {
 
 #[derive(Debug, Clone)]
 struct Board {
+    player: Piece,
     pieces: Vec<Piece>
 }
 
 impl Board {
     fn new() -> Board {
         Board {
+            player: Piece::X,
             pieces: vec![Piece::Empty; 9]
         }
     }
 
-    fn set_piece(&mut self, position: usize, piece: Piece) {
-        self.pieces[position] = piece
+    fn set_piece(&mut self, position: usize) {
+        self.pieces[position] = self.player.clone();
+
+        // Change the actual player
+        if self.player == Piece::X {
+            self.player = Piece::O;
+        } else {
+            self.player = Piece::X;
+        }
     }
 
     fn index_to_piece(&mut self, index: usize) -> Piece {
@@ -56,7 +67,7 @@ impl Board {
             if self.pieces[0] == self.pieces[1] && self.pieces[1] == self.pieces[2] {
                 return self.index_to_piece(0);
             } else if self.pieces[3] == self.pieces[4] && self.pieces[4] == self.pieces[5] {
-                return self.index_to_piece(0);
+                return self.index_to_piece(3);
             } else if self.pieces[6] == self.pieces[7] && self.pieces[7] == self.pieces[8] {
                 return self.index_to_piece(6);
             } else if self.pieces[0] == self.pieces[3] && self.pieces[3] == self.pieces[6] {
@@ -90,12 +101,19 @@ fn main() {
     println!("@ Tic-Tac-Toe Game @");
     let mut game = Board::new();
 
-    game.set_piece(0, Piece::X);
-    game.set_piece(1, Piece::X);
-    game.set_piece(2, Piece::X);
+    while game.get_winner() == Piece::Empty {
+        println!("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+        game.print();
+        println!("Player {} whats your move? (from 0 to 8)", piece_to_string(&game.player));
+        let mut movement = String::new();
 
-    println!("{:#?}", game);
-    println!("{:#?}", game.get_winner());
+        io::stdin().read_line(&mut movement).expect("Failed to read the movement");
+        let movement: usize = movement.trim().parse().expect("Failed to read the movement as number");
+
+        game.set_piece(movement);
+        println!("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+    }
+
     game.print();
-
+    println!("There's a winner: {}", piece_to_string(&game.get_winner()));  
 }
