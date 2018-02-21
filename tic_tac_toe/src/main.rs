@@ -1,76 +1,101 @@
-use std::io;
-
-#[derive(Debug)]
-struct Game {
-    actual_player: i32,
-    board: Vec<String>
+#[derive(Debug, Clone, PartialEq)]
+enum Piece {
+    X,
+    O,
+    Empty
 }
 
-fn winner(board: &Vec<String>) -> String {
-    let mut empty_positions = 0;
-    let mut winner = "".to_string();
+fn piece_to_string(piece: &Piece) -> String {
+    match piece {
+        &Piece::Empty => " ".to_string(),
+        &Piece::X => "X".to_string(),
+        &Piece::O => "O".to_string()
+    }
+}
 
-    // Check if there's a empty position
-    for position in board.iter() {
-        if position == "0" {
-            empty_positions += 1;
-        } else {
-            continue
+
+#[derive(Debug, Clone)]
+struct Board {
+    pieces: Vec<Piece>
+}
+
+impl Board {
+    fn new() -> Board {
+        Board {
+            pieces: vec![Piece::Empty; 9]
         }
     }
 
-    // Check the winner
-    if empty_positions == 0 {
-        if board[0] == board[1] && board[1] == board[2] {
-            winner = board[0].clone();
-        } else if board[3] == board[4] && board[4] == board[5] {
-            winner = board[0].clone();
-        } else if board[6] == board[7] && board[7] == board[8] {
-            winner = board[6].clone();
-        } else if board[0] == board[3] && board[3] == board[6] {
-            winner = board[0].clone();
-        } else if board[1] == board[4] && board[4] == board[5] {
-            winner = board[1].clone();
-        } else if board[2] == board[5] && board[5] == board[8] {
-            winner = board[2].clone();
-        } else if board[0] == board[4] && board[4] == board[8] {
-            winner = board[0].clone();
-        } else if board[2] == board[4] && board[4] == board[6] {
-            winner = board[2].clone();
-        } else {
-            winner = "DRAW".to_string();
+    fn set_piece(&mut self, position: usize, piece: Piece) {
+        self.pieces[position] = piece
+    }
+
+    fn index_to_piece(&mut self, index: usize) -> Piece {
+        match &self.pieces[index] {
+            &Piece::Empty => Piece::Empty,
+            &Piece::X => Piece::X,
+            &Piece::O => Piece::O 
         }
     }
 
-    return winner;
-}
+    fn get_winner(&mut self) -> Piece {
+        let mut empty_positions = 0;
 
-fn print_board(game: &Game) {
-    println!("-------");
-    println!("|{}|{}|{}|", game.board[0], game.board[1], game.board[2]);
-    println!("|{}|{}|{}|", game.board[3], game.board[4], game.board[5]);
-    println!("|{}|{}|{}|", game.board[6], game.board[7], game.board[8]);
-    println!("-------");
+        // Check if there's a empty position
+        for position in self.pieces.iter() {
+            match position {
+                &Piece::Empty => {
+                    empty_positions += 1
+                },
+                _ => continue
+            }
+        }
+
+        // Check the winner
+        if empty_positions <= 6 {
+            if self.pieces[0] == self.pieces[1] && self.pieces[1] == self.pieces[2] {
+                return self.index_to_piece(0);
+            } else if self.pieces[3] == self.pieces[4] && self.pieces[4] == self.pieces[5] {
+                return self.index_to_piece(0);
+            } else if self.pieces[6] == self.pieces[7] && self.pieces[7] == self.pieces[8] {
+                return self.index_to_piece(6);
+            } else if self.pieces[0] == self.pieces[3] && self.pieces[3] == self.pieces[6] {
+                return self.index_to_piece(0);
+            } else if self.pieces[1] == self.pieces[4] && self.pieces[4] == self.pieces[5] {
+                return self.index_to_piece(1);
+            } else if self.pieces[2] == self.pieces[5] && self.pieces[5] == self.pieces[8] {
+                return self.index_to_piece(2);
+            } else if self.pieces[0] == self.pieces[4] && self.pieces[4] == self.pieces[8] {
+                return self.index_to_piece(0);
+            } else if self.pieces[2] == self.pieces[4] && self.pieces[4] == self.pieces[6] {
+                return self.index_to_piece(2);
+            } else {
+                return Piece::Empty;
+            }
+        }
+
+        return Piece::Empty
+    }
+
+    fn print(&mut self) {
+        println!("-------");
+        println!("|{}|{}|{}|", piece_to_string(&self.pieces[0]), piece_to_string(&self.pieces[1]), piece_to_string(&self.pieces[2]));
+        println!("|{}|{}|{}|", piece_to_string(&self.pieces[3]), piece_to_string(&self.pieces[4]), piece_to_string(&self.pieces[5]));
+        println!("|{}|{}|{}|", piece_to_string(&self.pieces[6]), piece_to_string(&self.pieces[7]), piece_to_string(&self.pieces[8]));
+        println!("-------");
+    }
 }
 
 fn main() {
     println!("@ Tic-Tac-Toe Game @");
-    let mut game = Game {
-        actual_player: 1,
-        board: vec!["0".to_string(); 9]
-    };
+    let mut game = Board::new();
 
-    game.board[0] = "X".to_string();
-    game.board[1] = "X".to_string();
-    game.board[2] = "X".to_string();
-    game.board[3] = "O".to_string();
-    game.board[4] = "X".to_string();
-    game.board[5] = "O".to_string();
-    game.board[6] = "O".to_string();
-    game.board[7] = "X".to_string();
-    game.board[8] = "O".to_string();
+    game.set_piece(0, Piece::X);
+    game.set_piece(1, Piece::X);
+    game.set_piece(2, Piece::X);
 
-    print_board(&game);
-    println!("Winner: {}", winner(&game.board));
+    println!("{:#?}", game);
+    println!("{:#?}", game.get_winner());
+    game.print();
 
 }
