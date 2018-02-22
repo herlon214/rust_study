@@ -43,9 +43,14 @@ fn min(numbers: &Vec<i32>) -> i32 {
 }
 
 struct Computer {
+
 }
 
 impl Computer {
+    fn new() -> Computer {
+        Computer {}
+    }
+
     fn calc_score(&self, winner: Piece) -> i32 {
         if winner == Piece::X {
             return -10;
@@ -56,18 +61,28 @@ impl Computer {
         }
     }
 
-    fn mini_max(&mut self, board: &Board) -> i32 {
+    fn mini_max(&mut self, board: &Board, alpha: i32, beta: i32) -> i32 {
         let moves = Board::available_moves(board);
 
         // Leaf
         if moves.len() == 0 {
-            return self.calc_score(board.get_winner());
+            let score: i32 = self.calc_score(board.get_winner());
+            return score;
         }else {
             let mut scores: Vec<i32> = vec![];
 
             // Check the children's score
             for movement in &moves {
-                scores.push(self.mini_max(&movement));
+                let movement_score = self.mini_max(&movement, alpha, beta);
+
+                // Alpha-beta prunning
+                if board.player == Piece::X && alpha > movement_score {
+                    return movement_score;
+                } else if board.player == Piece::O && beta < movement_score {
+                    return movement_score;
+                }
+
+                scores.push(movement_score);
             }
 
             if board.player == Piece::X {
@@ -202,7 +217,7 @@ impl Board {
 fn main() {
     println!("@ Tic-Tac-Toe Game @");
     let mut board = Board::new();
-    let mut computer = Computer{};
+    let mut computer = Computer::new();
 
     // While there's moves left and no winner
     while Board::available_moves(&board).len() > 0 && board.get_winner() == Piece::Empty {
@@ -213,7 +228,9 @@ fn main() {
             let mut best_move: &Board = &moves[0];
 
             for movement in &moves {
-                let m_score = computer.mini_max(&movement);
+                let m_score = computer.mini_max(&movement, 20, -20);
+
+                // Check if the actual move is better than the actual best_move
                 if m_score > score {
                     best_move = movement;
                     score = m_score;
