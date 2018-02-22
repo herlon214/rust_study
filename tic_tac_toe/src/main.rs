@@ -100,10 +100,12 @@ impl Board {
     fn available_moves(board: &Board) -> Vec<Board> {
         let mut moves: Vec<Board> = vec![];
 
-        for position in board.get_empty_positions() {
-            let mut board = board.clone();
-            board.set_piece(position);
-            moves.push(board);
+        if board.get_winner() == Piece::Empty {
+            for position in board.get_empty_positions() {
+                let mut board = board.clone();
+                board.set_piece(position);
+                moves.push(board);
+            }
         }
 
         return moves;
@@ -171,7 +173,7 @@ impl Board {
                 return self.index_to_piece(6);
             } else if self.pieces[0] == self.pieces[3] && self.pieces[3] == self.pieces[6] {
                 return self.index_to_piece(0);
-            } else if self.pieces[1] == self.pieces[4] && self.pieces[4] == self.pieces[5] {
+            } else if self.pieces[1] == self.pieces[4] && self.pieces[4] == self.pieces[7] {
                 return self.index_to_piece(1);
             } else if self.pieces[2] == self.pieces[5] && self.pieces[5] == self.pieces[8] {
                 return self.index_to_piece(2);
@@ -206,20 +208,19 @@ fn main() {
     while Board::available_moves(&board).len() > 0 && board.get_winner() == Piece::Empty {
         // Computer plays
         if board.player == Piece::O {
-            let mut position: usize = 0;
             let moves = Board::available_moves(&board);
+            let mut score: i32 = -10;
+            let mut best_move: &Board = &moves[0];
 
             for movement in &moves {
-                let score = computer.mini_max(&movement);
-                if position == 0 && (score == 10 || score == 0) {
-                    position = movement.last_movement;
+                let m_score = computer.mini_max(&movement);
+                if m_score > score {
+                    best_move = movement;
+                    score = m_score;
                 }
             }
 
-
-            board.set_piece(position);
-
-            
+            board.set_piece(best_move.last_movement);
         } else { // User plays
             println!("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
             Board::print(&board);
