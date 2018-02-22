@@ -1,4 +1,5 @@
 use std::io;
+use std::cmp;
 
 #[derive(Debug, Clone, PartialEq, Copy)]
 enum Piece {
@@ -14,32 +15,6 @@ fn piece_to_string(piece: &Piece) -> String {
         &Piece::X => "X".to_string(),
         &Piece::O => "O".to_string()
     }
-}
-
-// Search for max number in the vector
-fn max_vec(numbers: &Vec<i32>) -> i32 {
-    let mut max = numbers[0];
-
-    for &number in numbers {
-        if number > max {
-            max = number;
-        }
-    }
-
-    return max;
-}
-
-// Search for min number in the vector
-fn min_vec(numbers: &Vec<i32>) -> i32 {
-    let mut min = numbers[0];
-
-    for &number in numbers {
-        if number < min {
-            min = number;
-        }
-    }
-
-    return min;
 }
 
 
@@ -70,39 +45,30 @@ impl Computer {
             let score: i32 = self.calc_score(board.get_winner());
             return score;
         }else {
-            let mut scores: Vec<i32> = vec![];
+            // Alpha-beta prunning
+            if board.player == Piece::X {
+                let mut movement_score = -20;
 
-            // Check the children's score
-            for movement in &moves {
-                let mut movement_score = self.mini_max_vec(&movement, alpha, beta);
-                scores.push(movement_score);
-
-                // Alpha-beta prunning
-                if board.player == Piece::X {
-                    // Update the alpha
-                    if &mut movement_score > alpha {
-                        *alpha = movement_score;
-                    }
-
-                    if beta < alpha {
-                        break;
-                    }
-                } else {
-                    // Update the beta
-                    if &mut movement_score < beta {
-                        *beta = movement_score;
-                    }
+                for movement in &moves {
+                    movement_score = cmp::max(movement_score, self.mini_max_vec(&movement, alpha, beta));
+                    *alpha = cmp::max(*alpha, movement_score);
 
                     if beta < alpha {
                         break;
                     }
                 }
-            }
-
-            if board.player == Piece::X {
-                return min_vec(&scores);
+                return movement_score;
             } else {
-               return max_vec(&scores);
+                let mut movement_score = 20;
+                for movement in &moves {
+                    movement_score = cmp::min(movement_score, self.mini_max_vec(&movement, alpha, beta));
+                    *beta = cmp::min(*beta, movement_score);
+
+                    if beta < alpha {
+                        break;
+                    }
+                }
+                return movement_score;
             }
         }
     }
@@ -257,13 +223,13 @@ fn main() {
         } else { // User plays
             println!("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
             Board::print(&board);
-            println!("Player {} what's your move? (from 0 to 8)", piece_to_string(&board.player));
+            println!("Player {} what's your move? (from 1 to 9)", piece_to_string(&board.player));
             let mut movement = String::new();
 
             io::stdin().read_line(&mut movement).expect("Failed to read the movement");
             let movement: usize = movement.trim().parse().expect("Failed to read the movement as number");
 
-            board.set_piece(movement);
+            board.set_piece(movement - 1);
             println!("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
         }
     }
