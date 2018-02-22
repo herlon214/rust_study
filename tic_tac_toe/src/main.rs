@@ -17,7 +17,7 @@ fn piece_to_string(piece: &Piece) -> String {
 }
 
 // Search for max number in the vector
-fn max(numbers: &Vec<i32>) -> i32 {
+fn max_vec(numbers: &Vec<i32>) -> i32 {
     let mut max = numbers[0];
 
     for &number in numbers {
@@ -30,7 +30,7 @@ fn max(numbers: &Vec<i32>) -> i32 {
 }
 
 // Search for min number in the vector
-fn min(numbers: &Vec<i32>) -> i32 {
+fn min_vec(numbers: &Vec<i32>) -> i32 {
     let mut min = numbers[0];
 
     for &number in numbers {
@@ -41,6 +41,7 @@ fn min(numbers: &Vec<i32>) -> i32 {
 
     return min;
 }
+
 
 struct Computer {
 
@@ -61,7 +62,7 @@ impl Computer {
         }
     }
 
-    fn mini_max(&mut self, board: &Board, alpha: i32, beta: i32) -> i32 {
+    fn mini_max_vec(&mut self, board: &Board, alpha: &mut i32, beta: &mut i32) -> i32 {
         let moves = Board::available_moves(board);
 
         // Leaf
@@ -73,22 +74,35 @@ impl Computer {
 
             // Check the children's score
             for movement in &moves {
-                let movement_score = self.mini_max(&movement, alpha, beta);
+                let mut movement_score = self.mini_max_vec(&movement, alpha, beta);
+                scores.push(movement_score);
 
                 // Alpha-beta prunning
-                if board.player == Piece::X && alpha > movement_score {
-                    return movement_score;
-                } else if board.player == Piece::O && beta < movement_score {
-                    return movement_score;
-                }
+                if board.player == Piece::X {
+                    // Update the alpha
+                    if &mut movement_score > alpha {
+                        *alpha = movement_score;
+                    }
 
-                scores.push(movement_score);
+                    if beta < alpha {
+                        break;
+                    }
+                } else {
+                    // Update the beta
+                    if &mut movement_score < beta {
+                        *beta = movement_score;
+                    }
+
+                    if beta < alpha {
+                        break;
+                    }
+                }
             }
 
             if board.player == Piece::X {
-                return min(&scores);
+                return min_vec(&scores);
             } else {
-               return max(&scores);
+               return max_vec(&scores);
             }
         }
     }
@@ -226,9 +240,11 @@ fn main() {
             let moves = Board::available_moves(&board);
             let mut score: i32 = -10;
             let mut best_move: &Board = &moves[0];
+            let mut alpha = -20;
+            let mut beta = 20;
 
             for movement in &moves {
-                let m_score = computer.mini_max(&movement, 20, -20);
+                let m_score = computer.mini_max_vec(&movement, &mut alpha, &mut beta);
 
                 // Check if the actual move is better than the actual best_move
                 if m_score > score {
