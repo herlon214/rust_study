@@ -37,8 +37,9 @@ impl Computer {
         }
     }
 
-    fn mini_max_vec(&mut self, board: &Board, alpha: &mut i32, beta: &mut i32) -> i32 {
+    fn mini_max(&mut self, board: &Board, alpha: &mut i32, beta: &mut i32) -> i32 {
         let moves = Board::available_moves(board);
+        // Board::print(board);
 
         // Leaf
         if moves.len() == 0 {
@@ -50,7 +51,7 @@ impl Computer {
                 let mut movement_score = -20;
 
                 for movement in &moves {
-                    movement_score = cmp::max(movement_score, self.mini_max_vec(&movement, alpha, beta));
+                    movement_score = cmp::max(movement_score, self.mini_max(&movement, alpha, beta));
                     *alpha = cmp::max(*alpha, movement_score);
 
                     if beta < alpha {
@@ -61,7 +62,7 @@ impl Computer {
             } else {
                 let mut movement_score = 20;
                 for movement in &moves {
-                    movement_score = cmp::min(movement_score, self.mini_max_vec(&movement, alpha, beta));
+                    movement_score = cmp::min(movement_score, self.mini_max(&movement, alpha, beta));
                     *beta = cmp::min(*beta, movement_score);
 
                     if beta < alpha {
@@ -210,7 +211,7 @@ fn main() {
             let mut beta = 20;
 
             for movement in &moves {
-                let m_score = computer.mini_max_vec(&movement, &mut alpha, &mut beta);
+                let m_score = computer.mini_max(&movement, &mut alpha, &mut beta);
 
                 // Check if the actual move is better than the actual best_move
                 if m_score > score {
