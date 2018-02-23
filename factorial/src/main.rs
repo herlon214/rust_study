@@ -18,3 +18,12 @@ fn main() {
 
     println!("The factorial of {} is {}", number, factorial(number));
 }
+
+#[cfg(test)]
+mod tests {
+    use factorial;
+    #[test]
+    fn it_works() {
+        assert!(factorial(5) == 120);
+    }
+}
